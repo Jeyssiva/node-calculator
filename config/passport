@@ -1,0 +1,22 @@
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const fs = require('fs')
+const bcrypt = require('bcrypt');
+
+passport.use(new LocalStrategy({
+  usernameField: 'userName',
+  passwordField: 'password',
+}, (userName, password, done) => {
+    fs.readFile('./datas/users.json', (err, data) => {
+        if(err){
+            return done(err)
+        }
+        let userArray = data.length === 0 || JSON.parse(data) === {} ? [] : JSON.parse(data);
+        const findUser = userArray.find(u => u.userName === userName);
+        if(findUser && bcrypt.compareSync(password, findUser.password)){
+            return done(null, findUser);
+        } else {
+            return done(null, false, { errors: { 'email or password': 'is invalid' } });
+        }
+    });
+}));
